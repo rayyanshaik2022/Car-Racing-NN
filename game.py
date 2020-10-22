@@ -7,6 +7,24 @@ import json
 from shapely.geometry import Polygon, LineString
 from shapely.coords import CoordinateSequence
 
+def points_to_mesh(points : list) -> list:
+    """
+    Converts list of points to a list of lines
+    that form a polygon
+    """
+
+    if len(points) < 3:
+        return None
+    
+    lines = []
+    last_index = len(points)-1
+
+    for i, point in enumerate(points):
+        if i != last_index:
+            lines.append( (point, points[i]) )
+        else:
+            # do here
+
 class Game:
 
     TURN_RIGHT = "turn_right"
@@ -36,34 +54,6 @@ class Game:
         # Collisions between car lines and walls
         for car in self.cars:
             car.vision_intersections = [[] for i in range(Car.VISION_LINES)]
-            for i, l in enumerate(car.calculate_vision()):
-                line = LineString(l)
-
-
-                b = self.interior_polygon.intersection(line).coords
-                if b == []:
-                    try:
-                        a = self.exterior_polygon.exterior.intersection(line).coords
-                    except:
-                        try:
-                            a = self.exterior_polygon.exterior.intersection(line)
-                            a = [a.x, a.y]
-                        except:
-                            a = self.exterior_polygon.exterior.intersection(line)[0].intersection(line)
-                
-                if b != []:
-                    b = [x for x in b]
-                    if len(b) > 0:
-                        car.vision_intersections[i].append(b[0])
-                else:
-                    if type(a) in [list, CoordinateSequence]:
-                        a = [x for x in a]
-                    else:
-                        a = [a.coords]
-                    
-                    if len(a) > 0:
-                        if a[0] != []:
-                            car.vision_intersections[i].append(a[0])
 
 
     def update_car(self):
