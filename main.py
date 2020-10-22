@@ -15,8 +15,8 @@ class Gui:
         self.clock = pygame.time.Clock()
 
     def new(self):
-        car = Car((400,400), 50)
-        self.game = Game(car)
+        cars = [Car((400,420), 20)]
+        self.game = Game(cars, "map_data.json")
 
     def run(self):
         self.playing = True
@@ -37,10 +37,14 @@ class Gui:
 
 
     def draw(self):
-        self.screen.fill(COLORS['background'])
+        self.screen.fill(COLORS['grass'])
+
+        pygame.draw.polygon(self.screen, COLORS["track"], self.game.map["exterior_poly"])
+        pygame.draw.polygon(self.screen, COLORS["grass"], self.game.map["interior_poly"])
 
 
-        self.game.car.draw(self.screen)
+        for car in self.game.cars:
+            car.draw(self.screen)
       
         pygame.display.flip()
 
@@ -56,14 +60,17 @@ class Gui:
         
         
         if keys_pressed[pygame.K_RIGHT]:
-            if keys_pressed[pygame.K_RIGHT]:
-                self.game.car.direction += math.pi/Car.TURN_SPEED
+            for car in self.game.cars:
+                car.direction += math.pi/Car.TURN_SPEED
         if keys_pressed[pygame.K_LEFT]:
-            self.game.car.direction -= math.pi/Car.TURN_SPEED
+            for car in self.game.cars:
+                car.direction -= math.pi/Car.TURN_SPEED
         if keys_pressed[pygame.K_UP]:
-            self.game.car.speed += Car.ACCELERATION
+            for car in self.game.cars:
+                car.speed += Car.ACCELERATION
         if keys_pressed[pygame.K_DOWN]:
-            self.game.car.speed -= Car.ACCELERATION * 2
+            for car in self.game.cars:
+                car.speed -= Car.ACCELERATION * 2
         
 
 
