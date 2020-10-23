@@ -15,7 +15,6 @@ def line_intersect(a : MultiLineString, b : tuple):
         return intersection.x, intersection.y
     return False
 
-
 def points_to_mesh(points : list) -> list:
     """
     Converts list of points to a list of lines
@@ -68,7 +67,10 @@ class Game:
         for car in self.cars:
             car.pos.x = spawn_point[0]
             car.pos.y = spawn_point[1]
-            car.direction = new_angle
+            if self.map["direction"]:
+                car.direction = self.map["direction"] + pi/2
+            else:
+                car.direction = new_angle
             car.checkpoints = [False for i in range(len(self.checkpoints))]
     
     def update(self):

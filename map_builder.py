@@ -23,7 +23,8 @@ FPS = 60
 INTERIOR_POLY = "Interior Polygon"
 EXTERIOR_POLY = "Exterior Polygon"
 CHECKPOINT = "Checkpoints"
-MODES = [INTERIOR_POLY, EXTERIOR_POLY, CHECKPOINT]
+SPAWN_DIRECTION = "Spawn Direction"
+MODES = [INTERIOR_POLY, EXTERIOR_POLY, CHECKPOINT, SPAWN_DIRECTION]
 
 class Gui:
     def __init__(self):
@@ -32,6 +33,8 @@ class Gui:
         self.clock = pygame.time.Clock()
 
         self.mode = INTERIOR_POLY
+
+        self.angle_center_pos = 0.0
 
     def new(self):
         
@@ -102,6 +105,8 @@ class Gui:
                     self.mode = EXTERIOR_POLY
                 if event.key == pygame.K_3:
                     self.mode = CHECKPOINT
+                if event.key == pygame.K_4:
+                    self.mode = SPAWN_DIRECTION
                 if event.key == pygame.K_RETURN:
                     print("> Storing data ...")
                     output = {
@@ -109,6 +114,11 @@ class Gui:
                         "exterior_poly" : self.exterior_poly_points,
                         "checkpoints" : self.checkpoint_lines
                     }
+
+                    if type(self.angle_center_pos) == float:
+                        output["direction"] = self.angle_center_pos
+                    else:
+                        output["direction"] = False
 
                     with open('map_data.json', 'w') as f:
                         json.dump(output, f, indent=4)
@@ -171,6 +181,13 @@ class Gui:
                     final_checkpoint_line = [interior_intersections[0][1], exterior_intersections[0][1]]
                     self.checkpoint_lines.append(final_checkpoint_line)
 
+                if self.mode == SPAWN_DIRECTION:
+
+                    if type(self.angle_center_pos) == float:
+                        self.angle_center_pos = [mx, my]
+                    else:
+                        self.angle_center_pos = atan2(self.angle_center_pos[0]-mx, self.angle_center_pos[1]-my)
+                        print("Angle set to: ", self.angle_center_pos * (180/pi))
 # create the game object
 g = Gui()
 g.new()

@@ -7,11 +7,11 @@ import math
 from network import *
 import pickle
 
-LOAD_DATA = True
+LOAD_DATA = False
 LOAD_FILE = "net_data.pickle"
 
 if not LOAD_DATA:
-    pop = Population(pop_size=30, generations=7, lifespan=15, mutation_chance=0.3, mutation_rate=0.3, network_type=Genetic)
+    pop = Population(pop_size=40, generations=100, lifespan=20, mutation_chance=0.3, mutation_rate=0.35, network_type=Genetic)
     pop.train()
 
     nets = pop.population[:5]
@@ -33,13 +33,14 @@ class Gui:
     def __init__(self):
         pygame.init()
         pygame.font.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
+
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
 
     def new(self):
         cars = [Car((0,0), 20) for i in range(len(nets))]
-        self.game = Game(cars, "map_data.json")
+        self.game = Game(cars, MAP)
 
     def run(self):
         self.playing = True
@@ -79,7 +80,6 @@ class Gui:
         last_checkpoint = self.game.map['checkpoints'][-1]
         pygame.draw.line(self.screen, COLORS['red'], last_checkpoint[0], last_checkpoint[1], 2)
 
-
         for car in self.game.cars:
             car.draw(self.screen)
       
@@ -95,7 +95,7 @@ class Gui:
                 if event.key == pygame.K_q:
                     pass
         
-        
+        # Manual user input - this will affect thow the agents move!
         if keys_pressed[pygame.K_RIGHT]:
             for car in self.game.cars:
                 car.direction += math.pi/Car.TURN_SPEED

@@ -5,6 +5,9 @@ HEIGHT = 800
 TITLE = "Car Racing"
 FPS = 60
 
+
+MAP = "map_data.json"
+
 COLORS = {
     'background' : Color("#121212"),
     'white' : Color("#FFFFFF"),

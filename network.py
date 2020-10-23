@@ -21,7 +21,7 @@ class Genetic:
     def __init__(self):
 
         # creates a random network
-        self.network = self.generate_rnetwork(2+Car.VISION_LINES, 6, len(Genetic.ACTIONS))
+        self.network = self.generate_rnetwork(2+Car.VISION_LINES, 7, len(Genetic.ACTIONS))
     
     def generate_rnetwork(self, input_size, hidden_size, output_size):
 
@@ -168,7 +168,7 @@ class Population:
     def train_network(self, networks):
 
         cars = [Car((0,0), 20) for i in range(len(self.population))]
-        g = Game(cars, "map_data.json")
+        g = Game(cars, MAP)
         
         while g.timer < self.lifespan and any([x.alive for x in g.cars]):
             for i, car in enumerate(g.cars):
@@ -212,9 +212,11 @@ class Population:
         # Return score of the best performing network
         return top_score
     
-    def train(self):
+    def train(self, single=False):
         for i in range(self.generations):
             print("Gen:",self.current_generation)
             top_score = self.train_generation()
             self.best_by_generation.append((self.population[0], top_score))
             self.current_generation += 1
+            if single:
+                break
