@@ -5,12 +5,29 @@ from settings import *
 import random
 import math
 from network import *
+import pickle
 
-pop = Population(pop_size=30, generations=20, lifespan=15, mutation_chance=0.2, mutation_rate=0.2, network_type=Genetic)
-pop.train()
+LOAD_DATA = True
+LOAD_FILE = "net_data.pickle"
 
-nets = pop.population[:5]
-key = input("Start? : ")
+if not LOAD_DATA:
+    pop = Population(pop_size=30, generations=7, lifespan=15, mutation_chance=0.3, mutation_rate=0.3, network_type=Genetic)
+    pop.train()
+
+    nets = pop.population[:5]
+    name = str(input("Network name save: "))
+    name = name.strip()+'.pickle'
+    if name == ".pickle":
+        name = "net_data.pickle"
+
+    if "-" not in name:
+        with open(name, 'wb') as f:
+            pickle.dump(nets, f, protocol=pickle.HIGHEST_PROTOCOL)
+            print("> Networks saved!")
+else:
+    with open(LOAD_FILE, 'rb') as f:
+        nets = pickle.load(f)
+
 
 class Gui:
     def __init__(self):
@@ -57,6 +74,10 @@ class Gui:
 
         pygame.draw.polygon(self.screen, COLORS["track"], self.game.map["exterior_poly"])
         pygame.draw.polygon(self.screen, COLORS["grass"], self.game.map["interior_poly"])
+
+        # Draw end checkpoint
+        last_checkpoint = self.game.map['checkpoints'][-1]
+        pygame.draw.line(self.screen, COLORS['red'], last_checkpoint[0], last_checkpoint[1], 2)
 
 
         for car in self.game.cars:

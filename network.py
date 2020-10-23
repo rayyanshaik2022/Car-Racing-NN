@@ -3,6 +3,7 @@ from game import *
 from settings import *
 import random
 import math
+import copy
 
 def sigmoid(x):
   return 1 / (1 + math.exp(-x))
@@ -155,9 +156,11 @@ class Population:
                 fitness -= 99999
 
             fitness -= car.time_alive//10
-            for b in car.checkpoints:
-                if b:
-                    fitness += 30
+
+            checkpoint_adder = 30
+            for i, flag in enumerate(car.checkpoints):
+                if flag:
+                    fitness += checkpoint_adder + int(checkpoint_adder/(len(car.checkpoints)-i))
             if car.checkpoints[-1]:
                 fitness += 300
             car.fitness = fitness
@@ -187,18 +190,22 @@ class Population:
 
         # Take top 25%
         top_25 = self.population[:len(self.population)//4]
-        top_25_children = self.crossover(top_25, len(self.population)//2)
+        top_25_children = self.crossover(top_25, int(len(self.population)*(5/8)))
+
+        # If you want random entries
         randoms = [self.network_type() for i in  range(self.pop_size-len(top_25)-len(top_25_children))]
 
 
         # Now mutate all of these 
+        top_agent = copy.deepcopy(top_25[0])
+
         a = self.mutate(top_25)
         b = self.mutate(top_25_children)
         c = self.mutate(randoms)
         self.population = a+b+c
 
         # Elitism: Also include the highest performing network, unmodified
-        self.population.insert(0,top_25[0])
+        self.population.insert(0,top_agent)
         self.population = self.population[:-1]
 
         # Done with 1 generation

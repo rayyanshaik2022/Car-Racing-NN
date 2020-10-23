@@ -52,7 +52,6 @@ class Game:
 
         with open(map_file, 'r') as f:
             self.map = json.load(f)
-            print("> Successfully loaded map")
         
         self.exterior_polygon = Polygon(self.map['exterior_poly'])
         self.interior_polygon = Polygon(self.map['interior_poly'])
@@ -119,7 +118,7 @@ class Game:
 
             # Checkpoint collisions
             acceptable_distance = 10
-            if car.objective == len(self.checkpoints)-1:
+            if car.checkpoints[-1]:
                 car.time_alive = self.timer//10
                 car.alive = False
                 continue
