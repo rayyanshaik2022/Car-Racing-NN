@@ -1,11 +1,20 @@
 from pygame.math import Vector2 as Vector
 import pygame.gfxdraw
 from pygame import Color
-from math import sin, cos, atan2, pi
+from math import sin, cos, atan2, pi, hypot, radians
 from settings import *
 import json
-from shapely.geometry import Polygon, LineString
+from shapely.geometry import Polygon, LineString, Point, MultiLineString
 from shapely.coords import CoordinateSequence
+import numpy as np
+
+def line_intersect(a : MultiLineString, b : tuple):
+    b = LineString(b)
+    intersection = a.intersection(b)
+    if type(intersection) == Point:
+        return intersection.x, intersection.y
+    return False
+
 
 def points_to_mesh(points : list) -> list:
     """
@@ -21,9 +30,11 @@ def points_to_mesh(points : list) -> list:
 
     for i, point in enumerate(points):
         if i != last_index:
-            lines.append( (point, points[i]) )
+            lines.append( (point, points[i+1]) )
         else:
-            # do here
+            lines.append( (point, points[0]) )
+    
+    return lines
 
 class Game:
 
@@ -32,6 +43,8 @@ class Game:
     ACCELERATE = "accelerate"
     BRAKE = "brake"
     IDLE = "idle"
+
+    MOVES = [TURN_RIGHT, TURN_LEFT, ACCELERATE, BRAKE, IDLE]
 
     def __init__(self, cars, map_file):
         self.timer = 0
@@ -43,22 +56,83 @@ class Game:
         
         self.exterior_polygon = Polygon(self.map['exterior_poly'])
         self.interior_polygon = Polygon(self.map['interior_poly'])
+        self.exterior_lines = points_to_mesh(self.map['exterior_poly'])
+        self.interior_lines = points_to_mesh(self.map['interior_poly'])
+        self.exterior_multiline = MultiLineString(self.exterior_lines)
+        self.interior_multiline = MultiLineString(self.interior_lines)
+
         self.checkpoints = [LineString(x) for x in self.map['checkpoints']]
+
+        spawn_point = (self.map['checkpoints'][0][0][0]+self.map['checkpoints'][0][1][0])/2, (self.map['checkpoints'][0][0][1]+self.map['checkpoints'][0][1][1])/2
+        checkpoint1 = (self.map['checkpoints'][1][0][0]+self.map['checkpoints'][1][1][0])/2, (self.map['checkpoints'][1][0][1]+self.map['checkpoints'][1][1][1])/2
+        new_angle = atan2(spawn_point[0]-checkpoint1[0], spawn_point[1]-checkpoint1[1])
+        for car in self.cars:
+            car.pos.x = spawn_point[0]
+            car.pos.y = spawn_point[1]
+            car.direction = new_angle
+            car.checkpoints = [False for i in range(len(self.checkpoints))]
     
     def update(self):
         self.timer += 1
         self.update_collisions()
         self.update_car()
+    
+    def controller(self, i, action):
+        if action == Game.TURN_RIGHT:
+            self.cars[i].direction += pi/Car.TURN_SPEED
+        elif action == Game.TURN_LEFT:
+            self.cars[i].direction -= pi/Car.TURN_SPEED
+        elif action == Game.ACCELERATE:
+            self.cars[i].speed += Car.ACCELERATION
+        elif action == Game.BRAKE:
+            self.cars[i].speed -= Car.ACCELERATION * 2
+        else:
+            pass
 
     def update_collisions(self):
         # Collisions between car lines and walls
         for car in self.cars:
+            if not car.alive:
+                continue
+
+            p_pos = Point(car.pos.x, car.pos.y)
+            if (self.interior_polygon.intersects( p_pos )) or \
+                (not self.exterior_polygon.intersects( p_pos )):
+                
+                car.alive = False
+                car.time_alive = self.timer
+                continue
+
             car.vision_intersections = [[] for i in range(Car.VISION_LINES)]
 
+            # Vision line collisions
+            for i, v_line in enumerate(car.calculate_vision()):
+
+                interior_intersection = line_intersect(self.interior_multiline, v_line)
+                exterior_intersection = line_intersect(self.exterior_multiline, v_line)
+                if interior_intersection:
+                    car.vision_intersections[i].append(interior_intersection)
+
+                if exterior_intersection:
+                    car.vision_intersections[i].append(exterior_intersection)
+
+
+            # Checkpoint collisions
+            acceptable_distance = 10
+            if car.objective == len(self.checkpoints)-1:
+                car.time_alive = self.timer//10
+                car.alive = False
+                continue
+            if p_pos.distance(self.checkpoints[car.objective]) < acceptable_distance:
+                car.checkpoints[car.objective] = True
+                car.objective += 1
 
     def update_car(self):
 
         for car in self.cars:
+
+            if not car.alive:
+                continue
             #Vector2 frontWheel = carLocation + wheelBase/2 * new Vector2( cos(carHeading) , sin(carHeading) );
             #Vector2 backWheel = carLocation - wheelBase/2 * new Vector2( cos(carHeading) , sin(carHeading) 
             
@@ -90,7 +164,7 @@ class Car:
     TURN_SPEED = 60
 
     # number if vision lines in a 180 view in front of the car
-    VISION_LINES = 6
+    VISION_LINES = 5
     VISION_DISTANCE = 60
 
     def __init__(self, pos, size):
@@ -102,12 +176,17 @@ class Car:
         self.steer_angle = 0
         self.size = size
         self.wheel_base = size/2
+        self.color = Color("#0000FF")
 
         # Sensory Attributes
         self.vision_intersections = [[] for i in range(Car.VISION_LINES)]
 
         # Training attributes
         self.fitness = 0
+        self.alive = True
+        self.checkpoints = []
+        self.objective = 1
+        self.time_alive = 0
 
     def calculate_polygon(self):
 
@@ -150,9 +229,9 @@ class Car:
                 x2, y2 = int(p2[0]), int(p2[1])
                 pygame.gfxdraw.line(screen, x1, y1, x2, y2, COLORS['white'])
             else:
-                print(self.vision_intersections[i])
                 x1, y1 = int(p1[0]), int(p1[1])
                 x2, y2 = self.vision_intersections[i][0]
                 pygame.gfxdraw.line(screen, x1, y1, int(x2), int(y2), COLORS['red'])
+        
 
-        pygame.gfxdraw.polygon(screen, self.calculate_polygon(), Color("#0000FF"))
+        pygame.draw.polygon(screen, self.color, self.calculate_polygon())

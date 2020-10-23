@@ -4,7 +4,13 @@ from game import *
 from settings import *
 import random
 import math
+from network import *
 
+pop = Population(pop_size=30, generations=20, lifespan=15, mutation_chance=0.2, mutation_rate=0.2, network_type=Genetic)
+pop.train()
+
+nets = pop.population[:5]
+key = input("Start? : ")
 
 class Gui:
     def __init__(self):
@@ -15,7 +21,7 @@ class Gui:
         self.clock = pygame.time.Clock()
 
     def new(self):
-        cars = [Car((400,420), 20)]
+        cars = [Car((0,0), 20) for i in range(len(nets))]
         self.game = Game(cars, "map_data.json")
 
     def run(self):
@@ -33,8 +39,18 @@ class Gui:
     def update(self):
 
         pygame.display.set_caption(f"{TITLE} | FPS {round(self.clock.get_fps(),2)}")
+
+        for i, car in enumerate(self.game.cars):
+            move = nets[i].get_move(car)
+            self.game.controller(i, move)
+
         self.game.update()
 
+        '''
+        # random movement
+        for i, car in enumerate(self.game.cars):
+            self.game.controller(i, random.choice(Game.MOVES))
+        '''
 
     def draw(self):
         self.screen.fill(COLORS['grass'])
