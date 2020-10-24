@@ -17,7 +17,7 @@ COLORS = {
 }
 
 LOAD_DATA = False
-LOAD_FILE = "workingtwo.pickle"
+LOAD_FILE = "fast_cars.pickle"
 
 # Car settings
 CAR_SIZE = 20
@@ -27,7 +27,7 @@ HIDDEN_PERCEPTRONS = 4
 
 # Genetic Algorithm Settings
 POP_SIZE = 30
-GENERATIONS = 15
+GENERATIONS = 2
 LIFESPAN = 20 #in seconds
 MUTATION_CHANCE = 0.35
 MUTATION_RATE = 0.35

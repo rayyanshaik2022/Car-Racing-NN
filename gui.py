@@ -4,6 +4,7 @@ import pygame.gfxdraw
 from game import *
 from settings import *
 
+import pickle
 
 class Gui:
     def __init__(self, pop):
@@ -36,6 +37,18 @@ class Gui:
                 self.update()          
                 self.close()
             else:
+                # Save networks to a file
+                if self.pop.current_generation > self.pop.generations:
+                    name = str(input("Network name save: "))
+                    name = name.strip()+'.pickle'
+                    if name == ".pickle":
+                        name = "Networks/net_data.pickle"
+
+                    if "-" not in name:
+                        with open("Networks/"+name, 'wb') as f:
+                            pickle.dump(nets, f, protocol=pickle.HIGHEST_PROTOCOL)
+                            print("> Networks saved!")
+
                 self.pop.train(True)
                 self.new()
                 nets = self.pop.population[:5]

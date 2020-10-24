@@ -15,8 +15,8 @@
 - In order to create a playable agent for this game, I decided to develop a neural network. This neural network contains perceptrons, layers, and forwards propagation.
 - ### Network Structure
     - 7 (+ 1 bias) input values
-    - 2 Hidden layers, each with (default) 6 perceptrons
-    - 1 output layer with 5 values (each representing an action)
+    - 2 Hidden layers, each with (default) 4 perceptrons
+    - 1 output layer with 4 values (each representing an action)
 - ### Forward Propagation
     - Used to make the prediction for the next action
     - `tanh()` used as the activation function
