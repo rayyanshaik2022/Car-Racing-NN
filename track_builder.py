@@ -1,9 +1,10 @@
+import json
+from math import *
+
 import pygame
 import pygame.gfxdraw
 from pygame import Color
-from shapely.geometry import Polygon, LineString, Point
-from math import *
-import json
+from shapely.geometry import LineString, Point, Polygon
 
 COLORS = {
     "grass" : Color("#3aba4d"),
@@ -120,7 +121,7 @@ class Gui:
                     else:
                         output["direction"] = False
 
-                    with open('map_data.json', 'w') as f:
+                    with open('Tracks/track_data.json', 'w') as f:
                         json.dump(output, f, indent=4)
                         print("> Successfully stored data")
 

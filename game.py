@@ -1,12 +1,15 @@
-from pygame.math import Vector2 as Vector
+import json
+from math import atan2, cos, hypot, pi, radians, sin
+
+import numpy as np
 import pygame.gfxdraw
 from pygame import Color
-from math import sin, cos, atan2, pi, hypot, radians
-from settings import *
-import json
-from shapely.geometry import Polygon, LineString, Point, MultiLineString
+from pygame.math import Vector2 as Vector
 from shapely.coords import CoordinateSequence
-import numpy as np
+from shapely.geometry import LineString, MultiLineString, Point, Polygon
+
+from settings import *
+
 
 def line_intersect(a : MultiLineString, b : tuple):
     b = LineString(b)
@@ -49,7 +52,7 @@ class Game:
         self.timer = 0
         self.cars = cars
 
-        with open(map_file, 'r') as f:
+        with open("Tracks/"+map_file, 'r') as f:
             self.map = json.load(f)
         
         self.exterior_polygon = Polygon(self.map['exterior_poly'])
@@ -86,7 +89,7 @@ class Game:
         elif action == Game.ACCELERATE:
             self.cars[i].speed += Car.ACCELERATION
         elif action == Game.BRAKE:
-            self.cars[i].speed -= Car.ACCELERATION * 2
+            self.cars[i].speed -= Car.ACCELERATION
         else:
             pass
 
@@ -142,6 +145,13 @@ class Game:
             if car.speed < 0:
                 car.speed = 0
 
+            if car.speed == 0:
+                car.static_time += 1
+            
+            if car.static_time > 2*60:
+                car.alive = False
+                continue
+
             front_wheel = car.pos + car.wheel_base * Vector(cos(car.direction), sin(car.direction))
             back_wheel = car.pos - car.wheel_base * Vector(cos(car.direction), sin(car.direction))
             
@@ -160,19 +170,19 @@ class Game:
 
 class Car:
 
-    MAX_SPEED = 5
+    MAX_SPEED = 4
     ACCELERATION = 0.05
     TURN_SPEED = 60
 
     # number if vision lines in a 180 view in front of the car
     VISION_LINES = 5
-    VISION_DISTANCE = 60
+    VISION_DISTANCE = 75
 
     def __init__(self, pos, size):
 
         self.pos = Vector(*pos)
         self.direction = pi * 3/2
-        self.speed = 0
+        self.speed = Car.MAX_SPEED
         self.acceleration = Car.ACCELERATION
         self.steer_angle = 0
         self.size = size
@@ -188,6 +198,7 @@ class Car:
         self.checkpoints = []
         self.objective = 1
         self.time_alive = 0
+        self.static_time = 0
 
     def calculate_polygon(self):
 

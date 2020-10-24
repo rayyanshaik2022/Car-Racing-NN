@@ -1,9 +1,12 @@
+import copy
+import math
+import random
+
 import numpy as np
+
 from game import *
 from settings import *
-import random
-import math
-import copy
+
 
 def sigmoid(x):
   return 1 / (1 + math.exp(-x))
@@ -15,13 +18,13 @@ class Genetic:
         Game.TURN_LEFT,
         Game.ACCELERATE,
         Game.BRAKE,
-        Game.IDLE
+        #Game.IDLE
     ]
 
     def __init__(self):
 
         # creates a random network
-        self.network = self.generate_rnetwork(2+Car.VISION_LINES, 7, len(Genetic.ACTIONS))
+        self.network = self.generate_rnetwork(2+Car.VISION_LINES, HIDDEN_PERCEPTRONS, len(Genetic.ACTIONS))
     
     def generate_rnetwork(self, input_size, hidden_size, output_size):
 
@@ -63,15 +66,6 @@ class Genetic:
         return Genetic.ACTIONS[max_index]
 
     def get_state(self, car):
-        """
-        direction
-        speed
-        l1
-        l2
-        l3
-        l4
-        l5
-        """
 
         input_vector = [-1 for i in range(7)]
         input_vector[0] = (car.direction % (2*pi)) / (2*pi)
@@ -167,7 +161,7 @@ class Population:
 
     def train_network(self, networks):
 
-        cars = [Car((0,0), 20) for i in range(len(self.population))]
+        cars = [Car((0,0), CAR_SIZE) for i in range(len(self.population))]
         g = Game(cars, MAP)
         
         while g.timer < self.lifespan and any([x.alive for x in g.cars]):

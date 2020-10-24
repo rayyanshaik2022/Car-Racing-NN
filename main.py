@@ -1,117 +1,33 @@
-import pygame
-import pygame.gfxdraw
-from game import *
-from settings import *
-import random
 import math
-from network import *
 import pickle
+import random
 
-LOAD_DATA = False
-LOAD_FILE = "net_data.pickle"
+from gui import Gui
+from network import *
+from settings import *
 
 if not LOAD_DATA:
-    pop = Population(pop_size=40, generations=100, lifespan=20, mutation_chance=0.3, mutation_rate=0.35, network_type=Genetic)
+    pop = Population(POP_SIZE, GENERATIONS, LIFESPAN, MUTATION_CHANCE, MUTATION_RATE, network_type=Genetic)
+    '''
     pop.train()
 
     nets = pop.population[:5]
     name = str(input("Network name save: "))
     name = name.strip()+'.pickle'
     if name == ".pickle":
-        name = "net_data.pickle"
+        name = "Networks/net_data.pickle"
 
     if "-" not in name:
-        with open(name, 'wb') as f:
+        with open("Networks/"+name, 'wb') as f:
             pickle.dump(nets, f, protocol=pickle.HIGHEST_PROTOCOL)
             print("> Networks saved!")
+    '''
 else:
-    with open(LOAD_FILE, 'rb') as f:
-        nets = pickle.load(f)
-
-
-class Gui:
-    def __init__(self):
-        pygame.init()
-        pygame.font.init()
-        pygame.display.set_caption(TITLE)
-
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.clock = pygame.time.Clock()
-
-    def new(self):
-        cars = [Car((0,0), 20) for i in range(len(nets))]
-        self.game = Game(cars, MAP)
-
-    def run(self):
-        self.playing = True
-        while self.playing:
-            self.dt = self.clock.tick(FPS) / 1000 # Controls update speed (FPS per second)
-            self.events()
-            self.update()
-            self.draw()
-
-    def close(self):
-        pygame.quit()
-        quit()
-
-    def update(self):
-
-        pygame.display.set_caption(f"{TITLE} | FPS {round(self.clock.get_fps(),2)}")
-
-        for i, car in enumerate(self.game.cars):
-            move = nets[i].get_move(car)
-            self.game.controller(i, move)
-
-        self.game.update()
-
-        '''
-        # random movement
-        for i, car in enumerate(self.game.cars):
-            self.game.controller(i, random.choice(Game.MOVES))
-        '''
-
-    def draw(self):
-        self.screen.fill(COLORS['grass'])
-
-        pygame.draw.polygon(self.screen, COLORS["track"], self.game.map["exterior_poly"])
-        pygame.draw.polygon(self.screen, COLORS["grass"], self.game.map["interior_poly"])
-
-        # Draw end checkpoint
-        last_checkpoint = self.game.map['checkpoints'][-1]
-        pygame.draw.line(self.screen, COLORS['red'], last_checkpoint[0], last_checkpoint[1], 2)
-
-        for car in self.game.cars:
-            car.draw(self.screen)
-      
-        pygame.display.flip()
-
-    def events(self):
-        # catch all events here
-        keys_pressed = pygame.key.get_pressed()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.close()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    pass
-        
-        # Manual user input - this will affect thow the agents move!
-        if keys_pressed[pygame.K_RIGHT]:
-            for car in self.game.cars:
-                car.direction += math.pi/Car.TURN_SPEED
-        if keys_pressed[pygame.K_LEFT]:
-            for car in self.game.cars:
-                car.direction -= math.pi/Car.TURN_SPEED
-        if keys_pressed[pygame.K_UP]:
-            for car in self.game.cars:
-                car.speed += Car.ACCELERATION
-        if keys_pressed[pygame.K_DOWN]:
-            for car in self.game.cars:
-                car.speed -= Car.ACCELERATION * 2
-        
+    with open("Networks/"+LOAD_FILE, 'rb') as f:
+        nets = pickle.load(f)        
 
 
 # create the game object
-g = Gui()
+g = Gui(pop)
 g.new()
 g.run()
