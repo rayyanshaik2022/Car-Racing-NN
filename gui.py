@@ -46,7 +46,7 @@ class Gui:
 
                     if "-" not in name:
                         with open("Networks/"+name, 'wb') as f:
-                            pickle.dump(nets, f, protocol=pickle.HIGHEST_PROTOCOL)
+                            pickle.dump(self.pop.nets, f, protocol=pickle.HIGHEST_PROTOCOL)
                             print("> Networks saved!")
 
                 self.pop.train(True)

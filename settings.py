@@ -16,7 +16,7 @@ COLORS = {
     "red" : Color("#ff4545")
 }
 
-LOAD_DATA = False
+LOAD_DATA = True
 LOAD_FILE = "fast_cars.pickle"
 
 # Car settings
