@@ -1,4 +1,8 @@
 # Racing Game & Deep Genetic Network
+
+## Images
+
+![](https://rayyanshaik.com/images/aicar1.gif)
 ---
 ## Game Content
 - This project is a simple racing game that implements a neural network to have agents automatically race around the track. This project itself is split up into 3 parts: the map builder, gui/game, and deep neural network.
